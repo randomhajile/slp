@@ -1,0 +1,127 @@
+structure Table =
+struct
+type key = string;
+type value = int;
+type cell = key * value;
+type table = cell list;
+val empty = [];
+exception Fail;
+
+fun update (id, value, table) = (id, value) :: table;
+fun lookup (id, []) = raise Fail
+  | lookup (id, (s, v)::rest) =
+    if id = s
+    then v
+    else lookup (id, rest);
+end
+
+
+%%
+%term SEMICOLON
+    | ASSIGN
+    | PRINT
+    | LPAREN
+    | RPAREN
+    | ID of string
+    | INT of int
+    | PLUS
+    | MINUS
+    | TIMES
+    | DIVIDE
+    | COMMA
+    | EOF
+
+%nonterm prog  of Table.table
+       | stm   of Table.table -> Table.table
+       | exp   of Table.table -> Table.table * int
+       | exps  of Table.table -> Table.table * int
+
+%pos int
+%start prog
+%name Slp
+%verbose
+%noshift EOF
+%eop EOF
+
+%right SEMICOLON COMMA
+%left PLUS MINUS
+%left TIMES DIVIDE
+
+%%
+prog: stm (stm (Table.empty))
+
+stm: ID ASSIGN exp            (fn table =>
+                                  let
+                                      val (newTable, value) = (exp table)
+                                  in
+                                      Table.update (ID, value, newTable)
+                                  end)
+   | PRINT LPAREN exps RPAREN (fn table =>
+                                  let
+                                      val (newTable, value) = exps table
+                                  in
+                                      newTable
+                                  end)
+   | stm SEMICOLON stm        (fn table => stm2 (stm1 table))
+
+exps: exp            (fn table =>
+                         let
+                             val (newTable, value) = exp table
+                         in
+                             (print (Int.toString value); print "\n"; (newTable, value))
+                         end)
+    | exps COMMA exp (fn table =>
+                         let
+                             val (newTable, _) = exps table
+                         in
+                             let
+                                 val (newTable, value) = exp newTable
+                             in
+                                 (print (Int.toString value); print "\n"; (newTable, value))
+                             end
+                         end)
+
+exp: INT               (fn table => (table, INT))
+   | ID                (fn table => (table, Table.lookup (ID, table)))
+   | exp PLUS exp      (fn table =>
+                           let
+                               val (newTable, value1) = exp1 table
+                           in
+                               let
+                                   val (newTable, value2) = exp2 newTable
+                               in
+                                   (newTable, value1 + value2)
+                               end
+                           end)
+   | exp MINUS exp     (fn table =>
+                           let
+                               val (newTable, value1) = exp1 table
+                           in
+                               let
+                                   val (newTable, value2) = exp2 newTable
+                               in
+                                   (newTable, value1 - value2)
+                               end
+                           end)
+   | exp TIMES exp     (fn table =>
+                           let
+                               val (newTable, value1) = exp1 table
+                           in
+                               let
+                                   val (newTable, value2) = exp2 newTable
+                               in
+                                   (newTable, value1 * value2)
+                               end
+                           end)
+   | exp DIVIDE exp    (fn table =>
+                           let
+                               val (newTable, value1) = exp1 table
+                           in
+                               let
+                                   val (newTable, value2) = exp2 newTable
+                               in
+                                   (newTable, value1 div value2)
+                               end
+                           end)
+   | stm COMMA exp     (fn table => exp (stm table))
+   | LPAREN exp RPAREN (fn table => exp table)
