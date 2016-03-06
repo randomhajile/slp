@@ -1,0 +1,5 @@
+# ml-yacc generated files
+*.grm.*
+
+# ml-lex generated files
+*.lex.*
