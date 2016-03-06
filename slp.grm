@@ -1,3 +1,4 @@
+(* This version of the parser will interpret the program *)
 structure Table =
 struct
 type key = string;

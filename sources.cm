@@ -2,8 +2,12 @@ Group is
 
 slp.lex
 errormsg.sml
-driver.sml
+eval.sml
+parse.sml
 slp.grm
+slp_abs.grm
+absyn.sml
+pprint.sml
 $/basis.cm
 $/smlnj-lib.cm
 $/ml-yacc-lib.cm

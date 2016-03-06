@@ -1,0 +1,52 @@
+(* This version of the parser will output an AST. *)
+%%
+%term SEMICOLON
+    | ASSIGN
+    | PRINT
+    | LPAREN
+    | RPAREN
+    | ID of string
+    | INT of int
+    | PLUS
+    | MINUS
+    | TIMES
+    | DIVIDE
+    | COMMA
+    | EOF
+
+%nonterm prog  of Absyn.stm
+       | stm   of Absyn.stm
+       | exp   of Absyn.exp
+       | exps  of Absyn.exp list
+
+%header (functor SlpAstLrValsFun(structure Token : TOKEN))
+
+%pos int
+%start prog
+%name SlpAst
+%verbose
+%noshift EOF
+%eop EOF
+
+%right SEMICOLON COMMA
+%left PLUS MINUS
+%left TIMES DIVIDE
+
+%%
+prog: stm (stm)
+
+stm: ID ASSIGN exp            (Absyn.AssignStm (ID, exp))
+   | PRINT LPAREN exps RPAREN (Absyn.PrintStm exps)
+   | stm SEMICOLON stm        (Absyn.CompoundStm (stm1, stm2))
+
+exps: exp            (exp :: nil)
+    | exps COMMA exp (exp :: exps)
+
+exp: INT               (Absyn.NumExp INT)
+   | ID                (Absyn.IdExp ID)
+   | exp PLUS exp      (Absyn.OpExp (exp1, Absyn.PLUS, exp2))
+   | exp MINUS exp     (Absyn.OpExp (exp1, Absyn.MINUS, exp2))
+   | exp TIMES exp     (Absyn.OpExp (exp1, Absyn.TIMES, exp2))
+   | exp DIVIDE exp    (Absyn.OpExp (exp1, Absyn.DIVIDE, exp2))
+   | stm COMMA exp     (Absyn.EseqExp (stm, exp))
+   | LPAREN exp RPAREN (exp)
