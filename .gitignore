@@ -3,3 +3,6 @@
 
 # ml-lex generated files
 *.lex.*
+
+# build directory
+.cm
