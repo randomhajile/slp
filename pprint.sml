@@ -20,18 +20,6 @@ fun print (outstream, stm0) =
           | opname A.MINUS  = "MinusOp"
           | opname A.TIMES  = "TimesOp"
           | opname A.DIVIDE = "DivideOp"
-        (* This next one is really just a map *)
-        fun dolist d f [a] = (
-            sayln "";
-            f (a, d+1)
-        )
-          | dolist d f (a :: r) =(
-              sayln "";
-              f (a, d+1);
-              say ",";
-              dolist d f r
-          )
-          | dolist d f nil = ()
         fun var (s, d) = (
             indent d;
             say "Var(";
